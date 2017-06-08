@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_PACKAGE = "package";
     public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public final static String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
+    public final static String BARCODE_DATA = "BarcodeData";
 
 
     @Override
@@ -94,11 +95,11 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver scanResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals("fr.coppernic.intent.scansuccess")) {
-                String dataRead = intent.getExtras().getString("BarcodeData");
+            if (intent.getAction().equals(ACTION_SCAN_SUCCESS)) {
+                String dataRead = intent.getExtras().getString(BARCODE_DATA);
                 TextView tvBarcode = (TextView)findViewById(R.id.tvBarcode);
                 tvBarcode.setText(dataRead);
-            } else if (intent.getAction().equals("fr.coppernic.intent.scanfailed")) {
+            } else if (intent.getAction().equals(ACTION_SCAN_ERROR)) {
                 // Handle error
             }
         }
