@@ -7,24 +7,25 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive";
+    private static final String TAG = "MainActivity";
+    // Use package name depending of your device
+    private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cone";
+    //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive";
+    //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.ceight";
     private static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
     private static final String KEY_PACKAGE = "package";
     public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public final static String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public final static String BARCODE_DATA = "BarcodeData";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
