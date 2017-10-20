@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cone";
     //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive";
     //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.ceight";
+    //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.idplatform";
     private static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
     private static final String KEY_PACKAGE = "package";
     public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
