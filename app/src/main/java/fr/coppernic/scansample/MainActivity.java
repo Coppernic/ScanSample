@@ -14,16 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import fr.coppernic.sdk.utils.helpers.CpcOs;
+
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
-    // Use package name depending of your device
-    private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cone";
-    //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive";
-    //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.ceight";
-    //private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.idplatform";
     private static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
-    private static final String KEY_PACKAGE = "package";
     public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public final static String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public final static String BARCODE_DATA = "BarcodeData";
@@ -83,9 +78,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void startScan () {
         Intent scanIntent = new Intent();
-        scanIntent.setPackage(SERVICE_PACKAGE_NAME);
+        scanIntent.setPackage(CpcOs.getSystemServicePackage(this));
         scanIntent.setAction(INTENT_ACTION_SCAN);
-        scanIntent.putExtra(KEY_PACKAGE, this.getPackageName());
         ComponentName info = this.startService(scanIntent);
         if (info != null) {
             // OK
@@ -113,5 +107,4 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(ACTION_SCAN_ERROR);
         registerReceiver(scanResult, filter);
     }
-
 }
