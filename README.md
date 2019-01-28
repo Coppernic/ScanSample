@@ -33,7 +33,10 @@ if (info != null) {
 where
 
 ```groovy
-private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive"; //cfive for C-five, ceight for C-eight cone for C-One
+// With Barcode Manager App (C-One²)
+private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.features.barcode.conen"; //conen for C-One², cfive for C-five, ...
+// With CpcSystemServices
+private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive"; //cfive for C-five, ceight for C-eight, cone for C-One
 private static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
 private static final String KEY_PACKAGE = "package";
 ```
