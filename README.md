@@ -1,11 +1,18 @@
 Barcode scanning
-===============
+================
+
 Context 
 -----------
+
 This application demonstrates how to scan a barcode on Coppernic device.
 
+Prerequisites
+-------------
+
+CpcSystemServices from version 2.0.4 needs to be installed on device.
+
 Trig a barcode
--------------------
+--------------
 
 There are 2 ways to trig a barcode reading:
 - Remap a physical button to barcode scan function
@@ -42,7 +49,7 @@ private static final String KEY_PACKAGE = "package";
 ```
 
 Get data read
-------------------
+-------------
 Data read (and errors) are sent back with an intent. You need to declare a BroadcastReceiver to get it:
 
 ```groovy
@@ -96,4 +103,9 @@ protected void onPause() {
 }
 ```
 
+Configure
+---------
+
+Barcode reader can be configured via Barcode Settings application. This application
+is usually installed on devices. It is also available on [F-Droid](https://coppernic.github.io/coppernic/2018/02/13/F-Droid.html).
 
