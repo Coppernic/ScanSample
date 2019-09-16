@@ -1,7 +1,6 @@
 package fr.coppernic.scansample;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -14,11 +13,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import fr.coppernic.sdk.utils.helpers.CpcOs;
+import fr.coppernic.sdk.barcode.BarcodeReader;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
     public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public final static String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public final static String BARCODE_DATA = "BarcodeData";
@@ -71,21 +69,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         unregisterReceiver(scanResult);
+        stopScan();
     }
 
     /**
      * Triggers a barcode scan
      */
+
     private void startScan () {
-        Intent scanIntent = new Intent();
-        scanIntent.setPackage(CpcOs.getSystemServicePackage(this));
-        scanIntent.setAction(INTENT_ACTION_SCAN);
-        ComponentName info = this.startService(scanIntent);
-        if (info != null) {
-            // OK
-        } else {
-            // Error
-        }
+        BarcodeReader.ServiceManager.startScan(this);
+    }
+
+    private void stopScan() {
+        BarcodeReader.ServiceManager.stopScan(this);
     }
 
     private BroadcastReceiver scanResult = new BroadcastReceiver() {
