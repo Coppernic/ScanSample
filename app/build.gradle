@@ -60,15 +60,23 @@ dependencies {
 
     implementation 'fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.18.4'
 
+    implementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode"
+
     //for C-one/C-Five
-    legacyImplementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode"
+    //legacyImplementation "fr.coppernic.sdk.barcode:CpcBarcode:$barcode"
     //for C-one2
-    managerImplementation "fr.coppernic.lib.barcode:CpcBarcode-conen:1.3.0"
+    //managerImplementation "fr.coppernic.lib.barcode:CpcBarcode-conen:1.3.0"
 
     testImplementation 'junit:junit:4.12'
 }
 
 configurations.all {
+
+    if(name.contains('manager')) {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("fr.coppernic.sdk.barcode:CpcBarcode:$barcode") with module ("fr.coppernic.lib.barcode:CpcBarcode-conen:1.3.0")
+        }
+    }
 
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         def requested = details.requested
