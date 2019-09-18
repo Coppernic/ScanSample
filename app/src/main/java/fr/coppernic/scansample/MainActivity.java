@@ -5,40 +5,34 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
+import android.content.pm.ComponentInfo;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.system.Os;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import fr.coppernic.sdk.core.Defines;
-import fr.coppernic.sdk.utils.helpers.OsHelper;
 import timber.log.Timber;
 
-//import fr.coppernic.sdk.barcode.BarcodeReader;
-
-
 public class MainActivity extends AppCompatActivity {
-
-    public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
-    public final static String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
-    public final static String BARCODE_DATA = "BarcodeData";
+    public static final String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
+    public static final String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
+    public static final String BARCODE_DATA = "BarcodeData";
+    public static final String BASE_NAME_SYSTEM_SERVICE= "fr.coppernic.service";
+    public static final String BASE_NAME_BARCODE_MANAGER = "fr.coppernic.features.barcode";
+    public final AndroidInteractor androidInteractor = new AndroidInteractor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -61,39 +55,42 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Triggers a barcode scan
-     */
+     **/
 
     private void startScan() {
 
         //BarcodeReader.ServiceManager.startScan(this);
-
         Context context = this.getApplicationContext();
-        PackageManager pm = context.getPackageManager();
-        String packageName = OsHelper.getSystemServicePackage(context);
-        boolean isSystemServiceInstall = isPackageInstalled("fr.coppernic.service.cone", pm);
-        boolean isBarcodeServiceInstall = isPackageInstalled("fr.coppernic.service.conen", pm);
-        Log.d("tag", packageName);
+        String packageNameSystemService = androidInteractor.isAppInstalled(context, BASE_NAME_SYSTEM_SERVICE);
+        String packageNameBarcodeManager = androidInteractor.isAppInstalled(context, BASE_NAME_BARCODE_MANAGER);
 
-        if (isSystemServiceInstall) {
-            Log.d("tag", packageName);
-            Intent scanIntent = new Intent();
-            scanIntent.setPackage(packageName);
-            scanIntent.setAction(INTENT_ACTION_SCAN);
-            context.startService(scanIntent);
-            Log.d("tag", "System Service is install");
-        } else if (isBarcodeServiceInstall) {
-            Intent barcodeIntent = getBaseIntent(context);
-            barcodeIntent.setPackage(packageName);
+        if (packageNameBarcodeManager != null) {
+            Intent barcodeIntent = new Intent();
+            barcodeIntent.setPackage(packageNameBarcodeManager);
             barcodeIntent.setAction(Defines.IntentDefines.INTENT_ACTION_SCAN);
-            barcodeIntent.putExtra(Defines.Keys.KEY_PACKAGE, packageName);
-            context.startService(barcodeIntent);
-            Log.d("tag", "Barcode Manager is install");
-        } else {
-            if (OsHelper.isConeV2()) {
-                Toast.makeText(context,"Barcode Service is required", Toast.LENGTH_LONG).show();
-            } else if (OsHelper.isCone()) {
-                Toast.makeText(context,"CPC System Service is required", Toast.LENGTH_LONG).show();
+            barcodeIntent.putExtra(Defines.Keys.KEY_PACKAGE, packageNameBarcodeManager);
+            ComponentName info = context.startService(barcodeIntent);
+            if (info !=null) {
+                Timber.d( "Scan Success with Barcode Manager");
+            } else {
+                Timber.d( "Scan Error with Barcode Manager");
             }
+            Timber.d("Barcode Manager is installed ");
+
+        } else if (packageNameSystemService != null) {
+            Intent scanIntent = new Intent();
+            scanIntent.setPackage(packageNameSystemService);
+            scanIntent.setAction(INTENT_ACTION_SCAN);
+            ComponentName info = context.startService(scanIntent);
+            if (info !=null) {
+                Timber.d( "Scan Success with System Service");
+            } else {
+                Timber.d( "Scan Error with System Service");
+            }
+            Timber.d("System Service is installed");
+
+        } else {
+            Toast.makeText(context, (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -105,29 +102,10 @@ public class MainActivity extends AppCompatActivity {
                 TextView tvBarcode = (TextView) findViewById(R.id.tvBarcode);
                 tvBarcode.setText(dataRead);
             } else if (intent.getAction().equals(ACTION_SCAN_ERROR)) {
-                // Handle error
+                Toast.makeText(context, (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
             }
         }
     };
-
-    private boolean isPackageInstalled(String packageName, PackageManager packageManager) {
-        try {
-            packageManager.getPackageInfo(packageName, 0);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
-
-    private static Intent getBaseIntent(@NonNull Context context) {
-        Intent intent = new Intent();
-        String SERVICE_PACKAGE = "fr.coppernic.features.barcode";
-        String SERVICE_CLASS = "fr.coppernic.features.barcode.service.BarcodeService";
-        String pack = OsHelper.getSystemServicePackage(context, SERVICE_PACKAGE);
-        intent.setPackage(pack);
-        intent.setComponent(new ComponentName(pack, SERVICE_CLASS));
-        return intent;
-    }
 
     private void registerReceiver() {
         IntentFilter filter = new IntentFilter();
