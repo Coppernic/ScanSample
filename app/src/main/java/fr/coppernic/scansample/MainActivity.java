@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import fr.coppernic.sdk.core.Defines;
+import fr.coppernic.sdk.utils.core.CpcResult;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,8 +23,9 @@ public class MainActivity extends AppCompatActivity {
     public static final String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
     public static final String BARCODE_DATA = "BarcodeData";
-    public static final String BASE_NAME_SYSTEM_SERVICE= "fr.coppernic.service";
+    public static final String BASE_NAME_SYSTEM_SERVICE = "fr.coppernic.service";
     public static final String BASE_NAME_BARCODE_MANAGER = "fr.coppernic.features.barcode";
+    public static final String KEY_RESULT = "res";
     public final AndroidInteractor androidInteractor = new AndroidInteractor();
 
     @Override
@@ -59,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startScan() {
 
-        //BarcodeReader.ServiceManager.startScan(this);
         Context context = this.getApplicationContext();
         String packageNameSystemService = androidInteractor.isAppInstalled(context, BASE_NAME_SYSTEM_SERVICE);
         String packageNameBarcodeManager = androidInteractor.isAppInstalled(context, BASE_NAME_BARCODE_MANAGER);
@@ -70,10 +71,10 @@ public class MainActivity extends AppCompatActivity {
             barcodeIntent.setAction(Defines.IntentDefines.INTENT_ACTION_SCAN);
             barcodeIntent.putExtra(Defines.Keys.KEY_PACKAGE, packageNameBarcodeManager);
             ComponentName info = context.startService(barcodeIntent);
-            if (info !=null) {
-                Timber.d( "Scan Success with Barcode Manager");
+            if (info != null) {
+                Timber.d("Scan Success with Barcode Manager");
             } else {
-                Timber.d( "Scan Error with Barcode Manager");
+                Timber.e("Scan Error with Barcode Manager");
             }
             Timber.d("Barcode Manager is installed ");
 
@@ -82,10 +83,10 @@ public class MainActivity extends AppCompatActivity {
             scanIntent.setPackage(packageNameSystemService);
             scanIntent.setAction(INTENT_ACTION_SCAN);
             ComponentName info = context.startService(scanIntent);
-            if (info !=null) {
-                Timber.d( "Scan Success with System Service");
+            if (info != null) {
+                Timber.d("Scan Success with System Service");
             } else {
-                Timber.d( "Scan Error with System Service");
+                Timber.e("Scan Error with System Service");
             }
             Timber.d("System Service is installed");
 
@@ -97,12 +98,17 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver scanResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION_SCAN_SUCCESS)) {
-                String dataRead = intent.getExtras().getString(BARCODE_DATA);
-                TextView tvBarcode = (TextView) findViewById(R.id.tvBarcode);
-                tvBarcode.setText(dataRead);
-            } else if (intent.getAction().equals(ACTION_SCAN_ERROR)) {
-                Toast.makeText(context, (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
+            if (intent.getAction() != null) {
+                if (intent.getAction().equals(ACTION_SCAN_SUCCESS)) {
+                    String dataRead = intent.getStringExtra(BARCODE_DATA);
+                    TextView tvBarcode = findViewById(R.id.tvBarcode);
+                    tvBarcode.setText(dataRead);
+                } else if (intent.getAction().equals(ACTION_SCAN_ERROR)) {
+                    int result = intent.getIntExtra(KEY_RESULT, CpcResult.RESULT.ERROR.ordinal());
+                    CpcResult.RESULT resultAsEnum = CpcResult.RESULT.values()[result];
+                    String resultAsString = resultAsEnum.toString();
+                    Toast.makeText(context, getString(R.string.scan_error, resultAsString), Toast.LENGTH_LONG).show();
+                }
             }
         }
     };

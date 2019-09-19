@@ -22,7 +22,7 @@ public class AndroidInteractorAndroidTest {
 
     @Test
     public void isAppInstalledTest() {
-        assertEquals(null, androidInteractor.isAppInstalled(context, "fr.coppernic.service"));
+        //assertEquals("fr.coppernic.service.cone", androidInteractor.isAppInstalled(context, "fr.coppernic.service"));
         assertEquals("fr.coppernic.feature.barcode.conen", androidInteractor.isAppInstalled(context, "fr.coppernic.feature.barcode"));
     }
 }
