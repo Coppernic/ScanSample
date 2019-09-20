@@ -5,11 +5,8 @@ import android.content.pm.ApplicationInfo;
 
 import java.util.List;
 
-import io.reactivex.annotations.Nullable;
-
 class AndroidInteractor {
 
-    @Nullable
     String isAppInstalled(final Context context, final String packageName) {
         final List<ApplicationInfo> appsInfo = context.getPackageManager().getInstalledApplications(0);
         for (final ApplicationInfo appInfo : appsInfo) {
@@ -17,7 +14,7 @@ class AndroidInteractor {
                 return appInfo.packageName;
             }
         }
-        return null;
+        return "";
     }
 }
 
