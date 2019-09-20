@@ -24,7 +24,7 @@ In the settings, go to remap key & shortcuts (may change on different devices), 
 
 ### Send an intent
 
-```groovy
+```java
 Intent scanIntent = new Intent();
 scanIntent.setPackage(SERVICE_PACKAGE_NAME);
 scanIntent.setAction(INTENT_ACTION_SCAN);
@@ -39,9 +39,9 @@ if (info != null) {
 
 where
 
-```groovy
+```java
 // With Barcode Manager App (C-One²)
-private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.features.barcode.conen"; //conen for C-One², cfive for C-five, ...
+private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.features.barcode.conen"; //conen for C-One², idplatform for ID Platform, ...
 // With CpcSystemServices
 private static final String SERVICE_PACKAGE_NAME = "fr.coppernic.service.cfive"; //cfive for C-five, ceight for C-eight, cone for C-One
 private static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
@@ -52,14 +52,16 @@ Get data read
 -------------
 Data read (and errors) are sent back with an intent. You need to declare a BroadcastReceiver to get it:
 
-```groovy
+```java
 private BroadcastReceiver scanResult = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(ACTION_SCAN_SUCCESS)) {
             String dataRead = intent.getExtras().getString(BARCODE_DATA);
         } else if (intent.getAction().equals(ACTION_SCAN_ERROR)) {
-            // Handle error
+            int result = intent.getIntExtra(KEY_RESULT, CpcResult.RESULT.ERROR.ordinal());
+            CpcResult.RESULT resultAsEnum = CpcResult.RESULT.values()[result];
+            Toast.makeText(context, getString(R.string.scan_error, resultAsEnum.toString()), Toast.LENGTH_SHORT).show();
         }
     }
 };
@@ -67,7 +69,7 @@ private BroadcastReceiver scanResult = new BroadcastReceiver() {
 
 Where
 
-```groovy
+```java
 public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
 public final static String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
 public final static String BARCODE_DATA = "BarcodeData";
@@ -75,7 +77,7 @@ public final static String BARCODE_DATA = "BarcodeData";
 
 This broadcast receiver needs to be registered:
 
-```groovy
+```java
 private void registerReceiver() {
     IntentFilter filter = new IntentFilter();
     filter.addAction(ACTION_SCAN_SUCCESS);
@@ -85,7 +87,7 @@ private void registerReceiver() {
 ```
 For example in the onResume method of an Activity:
 
-```groovy
+```java
 @Override
 protected void onResume() {
     super.onResume();
@@ -95,7 +97,7 @@ protected void onResume() {
 
 And unregistered in the onPause for example:
 
-```groovy
+```java
 @Override
 protected void onPause() {
      super.onPause();

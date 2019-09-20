@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">ScanSample</string>
     <string name="action_settings">Settings</string>
+    <string name="scan_result">Your Scan result here !</string>
+    <string name="service_install_error_message">Make sure Service is installed</string>
+    <string name="scan_error">Error: %1$s</string>
 </resources>
