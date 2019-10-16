@@ -108,6 +108,29 @@ protected void onPause() {
 Configure
 ---------
 
-Barcode reader can be configured via Barcode Settings application. This application
+Barcode reader can be configured via Barcode Manager application. This application
 is usually installed on devices. It is also available on [F-Droid](https://coppernic.github.io/coppernic/2018/02/13/F-Droid.html).
+
+### General
+
+* Scan sound : play a sound when scan is ended or not.
+* Scan display : Diosplay the scanindicator on screen or not
+* Continuous mode : Enable continuous mode or not (scan until button is released or scan until good read or timeout)
+* Scan timeout : scan timeout
+* Barcode service startup at boot: Enables/disables automatic barcode service start when device boot is finished.
+* Display barcode notification: Displays a barcode notification in status bar or not.
+* Keep barcode reader opened: Id checked, improves scan speed.
+* Keyboard wedge: Sends data to input buffer in addition to intent.
+* Keyboard fast wedge : Use fatser keyboard wedge, needs an additional keyboiard to be installed.
+* Search and replace: Use regular expression to search and replace in data read.
+
+### Barcode reader
+
+### Parameters
+
+Depends on devices.
+
+# Symbologies
+
+Allows user to enable/disable symbologies, to add suffix and prefix, mininmal and maximum length that can be read.
 
