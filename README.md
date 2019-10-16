@@ -111,7 +111,7 @@ Configure
 Barcode reader can be configured via Barcode Manager application. This application
 is usually installed on devices. It is also available on [F-Droid](https://coppernic.github.io/coppernic/2018/02/13/F-Droid.html).
 
-### General
+### General
 
 * Scan sound : play a sound when scan is ended or not.
 * Scan display : Diosplay the scanindicator on screen or not
@@ -124,7 +124,9 @@ is usually installed on devices. It is also available on [F-Droid](https://coppe
 * Keyboard fast wedge : Use fatser keyboard wedge, needs an additional keyboiard to be installed.
 * Search and replace: Use regular expression to search and replace in data read.
 
-### Barcode reader
+### Barcode reader
+
+Barcode reader specific settings.
 
 ### Parameters
 
