@@ -132,7 +132,7 @@ Barcode reader specific settings.
 
 Depends on devices.
 
-# Symbologies
+### Symbologies
 
 Allows user to enable/disable symbologies, to add suffix and prefix, mininmal and maximum length that can be read.
 
