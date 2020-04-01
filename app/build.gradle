@@ -3,6 +3,24 @@ plugins {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'fr.coppernic.extensions'
+
+copper {
+    projectName = rootProject.name
+
+    publications {
+        artiConfig = project.hasProperty('artiServer') ? project.artiServer : "arti01"
+    }
+}
+
+apply plugin: 'fr.coppernic.android'
+
+repositories {
+    maven { url 'http://arti-01.coppernic.local:8081/artifactory/libs-release' }
+    google()
+    jcenter()
+    mavenCentral()
+}
 
 
 android {
