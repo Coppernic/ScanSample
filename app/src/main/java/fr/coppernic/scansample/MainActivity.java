@@ -5,7 +5,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -13,8 +16,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import fr.coppernic.sdk.utils.core.CpcDefinitions;
-import fr.coppernic.sdk.utils.core.CpcResult;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import timber.log.Timber;
 
@@ -27,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String BASE_NAME_BARCODE_MANAGER = "fr.coppernic.features.barcode";
     public static final String KEY_RESULT = "res";
     public static final String KEY_PACKAGE = "package";
+    private static final String BARCODE_PERMISSION = "fr.coppernic.permission.BARCODE";
+    private static final int BARCODE_CODE_PERMISSION = 42;
     public final AndroidInteractor androidInteractor = new AndroidInteractor();
 
     @Override
@@ -39,7 +42,12 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startScan();
+                //ask permission for Android 7 and upper
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    requestPermissions(new String[]{BARCODE_PERMISSION}, BARCODE_CODE_PERMISSION);
+                } else {
+                    startScan();
+                }
             }
         });
     }
@@ -72,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         resultAsEnum = RESULT.TIMEOUT;
                     }
                     Toast.makeText(context, getString(R.string.scan_error, resultAsEnum.toString()), Toast.LENGTH_SHORT)
-                        .show();
+                            .show();
                 }
             }
         }
@@ -133,5 +141,19 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(ACTION_SCAN_SUCCESS);
         filter.addAction(ACTION_SCAN_ERROR);
         registerReceiver(scanResult, filter);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == BARCODE_CODE_PERMISSION)
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startScan();
+            } else {
+                Toast.makeText(this, R.string.permission_required,
+                        Toast.LENGTH_SHORT).show();
+            }
     }
 }
