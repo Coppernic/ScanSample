@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
-import fr.coppernic.sdk.utils.helpers.OsHelper;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,10 +42,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (OsHelper.isConeV2() || OsHelper.isIdPlatform()) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        requestPermissions(new String[]{BARCODE_PERMISSION}, BARCODE_CODE_PERMISSION);
-                    }
+                //ask permission for Android 7 and upper
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    requestPermissions(new String[]{BARCODE_PERMISSION}, BARCODE_CODE_PERMISSION);
                 } else {
                     startScan();
                 }
