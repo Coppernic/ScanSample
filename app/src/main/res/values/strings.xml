@@ -4,4 +4,6 @@
     <string name="scan_result">Your Scan result here !</string>
     <string name="service_install_error_message">Make sure Service is installed</string>
     <string name="scan_error">Error: %1$s</string>
+    <string name="permission_required">Barcode reader permission REQUIRED to use scan</string>
+
 </resources>
