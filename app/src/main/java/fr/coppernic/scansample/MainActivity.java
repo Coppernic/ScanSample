@@ -22,7 +22,7 @@ import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
-    
+
     public static final String ACTION_SERVICE_START = "fr.coppernic.intent.action.start.barcode.service";
     public static final String ACTION_SERVICE_STOP = "fr.coppernic.intent.action.stop.barcode.service";
     public static final String INTENT_SERVICE_STARTED = "fr.coppernic.intent.barcode.service.STARTED";
@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String KEY_RESULT = "res";
     public static final String KEY_PACKAGE = "package";
     private static final String BARCODE_PERMISSION = "fr.coppernic.permission.BARCODE";
+    private static final int BARCODE_SERVICE_CODE_PERMISSION = 41;
     private static final int BARCODE_CODE_PERMISSION = 42;
     public final AndroidInteractor androidInteractor = new AndroidInteractor();
     private boolean isServiceRunning = true;
@@ -65,7 +66,13 @@ public class MainActivity extends AppCompatActivity {
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startStop();
+                //ask permission for Android 7 and upper
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    requestPermissions(new String[]{BARCODE_PERMISSION},
+                            BARCODE_SERVICE_CODE_PERMISSION);
+                } else {
+                    startStop();
+                }
             }
         });
         // We are checking then for CpcSystemServices application installed on older Coppernic's product. This
@@ -214,13 +221,25 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == BARCODE_CODE_PERMISSION)
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startScan();
-            } else {
-                Toast.makeText(this, R.string.permission_required,
-                        Toast.LENGTH_SHORT).show();
-            }
+        switch (requestCode) {
+            case BARCODE_CODE_PERMISSION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startScan();
+                } else {
+                    Toast.makeText(this, R.string.permission_required,
+                            Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case BARCODE_SERVICE_CODE_PERMISSION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startStop();
+                } else {
+                    Toast.makeText(this, R.string.permission_required,
+                            Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
     }
 }
