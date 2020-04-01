@@ -1,1 +1,3 @@
+rootProject.name = "ScanSample"
+
 include ':app'
