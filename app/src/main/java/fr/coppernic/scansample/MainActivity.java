@@ -94,13 +94,13 @@ public class MainActivity extends AppCompatActivity {
         cdtService = new CountDownTimer(BARCODE_SERVICE_TIMEOUT, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                btnStartStop.setText(getString(R.string.service_waiting));
+                btnStartStop.setText(getString(R.string.service_waiting, millisUntilFinished / 1000));
             }
 
             @Override
             public void onFinish() {
                 Toast.makeText(context, getString(R.string.service_not_responding),
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
                 if (isServiceRunning) {
                     btnStartStop.setText(R.string.stop_service);
                 } else {
