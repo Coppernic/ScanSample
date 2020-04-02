@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int BARCODE_SERVICE_CODE_PERMISSION = 41;
     private static final int BARCODE_CODE_PERMISSION = 42;
     private static final int BARCODE_SERVICE_TIMEOUT = 5000;
-    //
-    private AndroidInteractor androidInteractor = null;
     private boolean isServiceRunning = true;
     private String packageName = "";
     private Button btnStartStop = null;
@@ -79,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        androidInteractor = new AndroidInteractor(getApplicationContext());
+        //
+        AndroidInteractor androidInteractor = new AndroidInteractor(getApplicationContext());
         packageName = androidInteractor.loadPackage();
         if (packageName.contains("service")) {
             isConeV1 = true;
