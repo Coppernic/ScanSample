@@ -32,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
     public static final String BARCODE_DATA = "BarcodeData";
-    public static final String BASE_NAME_SYSTEM_SERVICE = "fr.coppernic.service";
-    public static final String BASE_NAME_BARCODE_MANAGER = "fr.coppernic.features.barcode";
     public static final String KEY_RESULT = "res";
     public static final String KEY_PACKAGE = "package";
     private static final String BARCODE_PERMISSION = "fr.coppernic.permission.BARCODE";
@@ -41,13 +39,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int BARCODE_CODE_PERMISSION = 42;
     private static final int BARCODE_SERVICE_TIMEOUT = 5000;
     //
-    public final AndroidInteractor androidInteractor = new AndroidInteractor();
+    private AndroidInteractor androidInteractor = null;
     private boolean isServiceRunning = true;
-    private Context context = null;
-    private String packageNameBarcodeManager = "";
-    private String packageNameSystemServices = "";
+    private String packageName = "";
     private Button btnStartStop = null;
     private CountDownTimer cdtService = null;
+    private boolean isConeV1 = false;
+    //declared here in case of start/stop service button spam
+    private Toast serviceOnOff = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,17 +79,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        context = this.getApplicationContext();
-        // We are checking first for BarcodeManager application. This application is installed on Coppernic's products
-        // released from 2019. It is replacing barcode service hosted in CpcSystemServices application.
-        packageNameSystemServices = androidInteractor.isAppInstalled(context, BASE_NAME_SYSTEM_SERVICE);
-        // We are checking then for CpcSystemServices application installed on older Coppernic's product. This
-        // application has the same applicationId than CoreService which in installed on Coppernic's products
-        // released from 2019. This is the reason why we are checking for BarcodeManager first. It is for avoiding
-        // false positive.
-        packageNameBarcodeManager = androidInteractor.isAppInstalled(context,
-                BASE_NAME_BARCODE_MANAGER);
-        //
+        androidInteractor = new AndroidInteractor(getApplicationContext());
+        packageName = androidInteractor.loadPackage();
+        if (packageName.contains("service")) {
+            isConeV1 = true;
+        }
         cdtService = new CountDownTimer(BARCODE_SERVICE_TIMEOUT, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -99,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                Toast.makeText(context, getString(R.string.service_not_responding),
+                Toast.makeText(getApplicationContext(), getString(R.string.service_not_responding),
                         Toast.LENGTH_SHORT).show();
                 if (isServiceRunning) {
                     btnStartStop.setText(R.string.stop_service);
@@ -108,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        serviceOnOff = Toast.makeText(getApplicationContext(),
+                getString(R.string.service_started), Toast.LENGTH_SHORT);
     }
 
     @Override
@@ -122,43 +117,25 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(serviceResult);
     }
 
+    /**
+     * No broadcast receiver for the C-OneV1 from his service
+     */
     private BroadcastReceiver serviceResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            //declared here in case of start/stop button spam
-            final Toast serviceOnOff = Toast.makeText(context,
-                    getString(R.string.service_started), Toast.LENGTH_SHORT);
             if (intent.getAction() != null) {
                 switch (intent.getAction()) {
                     case ACTION_SCAN_SUCCESS:
-                        String dataRead = intent.getStringExtra(BARCODE_DATA);
-                        TextView tvBarcode = findViewById(R.id.tvBarcode);
-                        tvBarcode.setText(dataRead);
+                        scanSuccess(intent);
                         break;
                     case ACTION_SCAN_ERROR:
-                        int result = intent.getIntExtra(KEY_RESULT, RESULT.ERROR.ordinal());
-                        RESULT resultAsEnum = RESULT.values()[result];
-                        // In this case, cancelled means timeout
-                        if (resultAsEnum == RESULT.CANCELLED) {
-                            resultAsEnum = RESULT.TIMEOUT;
-                        }
-                        Toast.makeText(context, getString(R.string.scan_error, resultAsEnum.toString()), Toast.LENGTH_SHORT)
-                                .show();
+                        scanError(intent);
                         break;
                     case INTENT_SERVICE_STARTED:
-                        serviceOnOff.show();
-                        isServiceRunning = true;
-                        cdtService.cancel();//don't go to onFinish
-                        btnStartStop.setText(R.string.stop_service);
-                        Log.d("ScanSample", "Barcode service started");
+                        serviceStarted(serviceOnOff);
                         break;
                     case INTENT_SERVICE_STOPPED:
-                        serviceOnOff.setText(getString(R.string.service_stopped));
-                        serviceOnOff.show();
-                        isServiceRunning = false;
-                        cdtService.cancel();//don't go to onFinish
-                        btnStartStop.setText(R.string.start_service);
-                        Log.d("ScanSample", "Barcode service stopped");
+                        serviceStopped(serviceOnOff);
                         break;
                 }
             }
@@ -169,53 +146,45 @@ public class MainActivity extends AppCompatActivity {
      * Triggers a barcode scan
      **/
     private void startScan() {
-        if (!packageNameBarcodeManager.isEmpty()) {
+        if (!packageName.isEmpty()) {
             Intent scanIntent = new Intent();
             // We need to set package to send an explicit intent.
-            scanIntent.setPackage(packageNameBarcodeManager);
+            scanIntent.setPackage(packageName);
             // We want a scan
             scanIntent.setAction(INTENT_ACTION_SCAN);
             //We are telling who we are to barcode service.
             scanIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
-            ComponentName info = context.startService(scanIntent);
-            if (info != null) {
-                Timber.d("Scan Success with Barcode Manager");
-            } else {
-                Timber.e("Barcode service in Barcode Manager not found");
-            }
-        } else if (!packageNameSystemServices.isEmpty()) {
-            Intent scanIntent = new Intent();
-            // We need to set package to send an explicit intent.
-            scanIntent.setPackage(packageNameSystemServices);
-            // We want a scan
-            scanIntent.setAction(INTENT_ACTION_SCAN);
-            //We are telling who we are to barcode service.
-            scanIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
-            ComponentName info = context.startService(scanIntent);
+            ComponentName info = startService(scanIntent);
             if (info != null) {
                 Timber.d("Scan Success with System Service");
             } else {
-                Timber.e("Barcode service in System Service not found");
+                Timber.e("Barcode service not found");
             }
         } else {
-            Toast.makeText(context, (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
         }
     }
 
     private void startStopService() {
-        if (!packageNameBarcodeManager.isEmpty()) {
+        if (!packageName.isEmpty()) {
             Intent startStopIntent = new Intent();
-            startStopIntent.setPackage(packageNameBarcodeManager);
+            startStopIntent.setPackage(packageName);
             //We are telling who we are to barcode service.
             startStopIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
             if (isServiceRunning) {
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_STOP);
+                if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
+                    serviceStopped(serviceOnOff);
+                }
             } else {
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_START);
+                if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
+                    serviceStarted(serviceOnOff);
+                }
             }
-            ComponentName info = context.startService(startStopIntent);
+            ComponentName info = startService(startStopIntent);
             if (info == null) {
                 Timber.e("Barcode service in System Service not found");
             }
@@ -255,5 +224,40 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    private void scanSuccess(Intent intent) {
+        String dataRead = intent.getStringExtra(BARCODE_DATA);
+        TextView tvBarcode = findViewById(R.id.tvBarcode);
+        tvBarcode.setText(dataRead);
+    }
+
+    private void scanError(Intent intent) {
+        int result = intent.getIntExtra(KEY_RESULT, RESULT.ERROR.ordinal());
+        RESULT resultAsEnum = RESULT.values()[result];
+        // In this case, cancelled means timeout
+        if (resultAsEnum == RESULT.CANCELLED) {
+            resultAsEnum = RESULT.TIMEOUT;
+        }
+        Toast.makeText(getApplicationContext(), getString(R.string.scan_error, resultAsEnum.toString()),
+                Toast.LENGTH_SHORT)
+                .show();
+    }
+
+    private void serviceStarted(Toast toast) {
+        toast.show();
+        isServiceRunning = true;
+        cdtService.cancel();//don't go to onFinish
+        btnStartStop.setText(R.string.stop_service);
+        Log.d("ScanSample", "Barcode service started");
+    }
+
+    private void serviceStopped(Toast toast) {
+        toast.setText(getString(R.string.service_stopped));
+        toast.show();
+        isServiceRunning = false;
+        cdtService.cancel();//don't go to onFinish
+        btnStartStop.setText(R.string.start_service);
+        Log.d("ScanSample", "Barcode service stopped");
     }
 }
