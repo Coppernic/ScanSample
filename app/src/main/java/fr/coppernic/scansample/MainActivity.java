@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -38,11 +39,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String BARCODE_PERMISSION = "fr.coppernic.permission.BARCODE";
     private static final int BARCODE_SERVICE_CODE_PERMISSION = 41;
     private static final int BARCODE_CODE_PERMISSION = 42;
+    private static final int BARCODE_SERVICE_TIMEOUT = 5000;
+    //
     public final AndroidInteractor androidInteractor = new AndroidInteractor();
     private boolean isServiceRunning = true;
     private String packageNameBarcodeManager = "";
     private Button btnStartStop = null;
-
+    private CountDownTimer cdtService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                     requestPermissions(new String[]{BARCODE_PERMISSION},
                             BARCODE_SERVICE_CODE_PERMISSION);
                 } else {
-                    startStop();
+                    startStopService();
                 }
             }
         });
@@ -81,6 +84,24 @@ public class MainActivity extends AppCompatActivity {
         // false positive.
         packageNameBarcodeManager = androidInteractor.isAppInstalled(getApplicationContext(),
                 BASE_NAME_BARCODE_MANAGER);
+        //
+        cdtService = new CountDownTimer(BARCODE_SERVICE_TIMEOUT, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                btnStartStop.setText(getString(R.string.service_waiting));
+            }
+
+            @Override
+            public void onFinish() {
+                Toast.makeText(getApplicationContext(), getString(R.string.service_not_responding),
+                        Toast.LENGTH_LONG).show();
+                if (isServiceRunning) {
+                    btnStartStop.setText(R.string.stop_service);
+                } else {
+                    btnStartStop.setText(R.string.start_service);
+                }
+            }
+        };
     }
 
     @Override
@@ -131,16 +152,21 @@ public class MainActivity extends AppCompatActivity {
                 if (intent.getAction().equals(INTENT_SERVICE_STARTED)) {
                     Toast.makeText(getApplicationContext(), getString(R.string.service_started),
                             Toast.LENGTH_LONG).show();
+                    isServiceRunning = true;
+                    cdtService.cancel();//don't go to onFinish
+                    btnStartStop.setText(R.string.stop_service);
                     Log.d("ScanSample", "Barcode service started");
                 } else if (intent.getAction().equals(INTENT_SERVICE_STOPPED)) {
                     Toast.makeText(getApplicationContext(), getString(R.string.service_stopped),
                             Toast.LENGTH_LONG).show();
+                    isServiceRunning = false;
+                    cdtService.cancel();//don't go to onFinish
+                    btnStartStop.setText(R.string.start_service);
                     Log.d("ScanSample", "Barcode service stopped");
                 }
             }
         }
     };
-
 
     /**
      * Triggers a barcode scan
@@ -183,19 +209,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startStop() {
+    private void startStopService() {
         if (!packageNameBarcodeManager.isEmpty()) {
             Intent startStopIntent = new Intent();
             startStopIntent.setPackage(packageNameBarcodeManager);
             //We are telling who we are to barcode service.
             startStopIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
             if (isServiceRunning) {
-                isServiceRunning = false;
-                btnStartStop.setText(R.string.start_service);
+                cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_STOP);
             } else {
-                isServiceRunning = true;
-                btnStartStop.setText(R.string.stop_service);
+                cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_START);
             }
             ComponentName info = getApplicationContext().startService(startStopIntent);
@@ -234,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             case BARCODE_SERVICE_CODE_PERMISSION:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startStop();
+                    startStopService();
                 } else {
                     Toast.makeText(this, R.string.permission_required,
                             Toast.LENGTH_SHORT).show();

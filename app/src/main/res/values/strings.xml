@@ -9,5 +9,7 @@
     <string name="stop_service">Stop barcode service</string>
     <string name="service_started">Barcode service started</string>
     <string name="service_stopped">Barcode service stopped</string>
+    <string name="service_waiting">Waiting...</string>
+    <string name="service_not_responding">Timeout...Service not responding</string>
 
 </resources>
