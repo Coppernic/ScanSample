@@ -126,10 +126,10 @@ public class MainActivity extends AppCompatActivity {
                         scanError(intent);
                         break;
                     case INTENT_SERVICE_STARTED:
-                        serviceStartStopped(false);
+                        displayServiceStatus(true);
                         break;
                     case INTENT_SERVICE_STOPPED:
-                        serviceStartStopped(true);
+                        displayServiceStatus(false);
                         break;
                 }
             }
@@ -169,13 +169,13 @@ public class MainActivity extends AppCompatActivity {
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_STOP);
                 if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
-                    serviceStartStopped(true);
+                    displayServiceStatus(false);
                 }
             } else {
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_START);
                 if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
-                    serviceStartStopped(false);
+                    displayServiceStatus(true);
                 }
             }
             ComponentName info = startService(startStopIntent);
@@ -238,16 +238,16 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void serviceStartStopped(boolean stop) {
+    private void displayServiceStatus(boolean start) {
         //declared here in case of start/stop service button spam
         Toast toast = Toast.makeText(getApplicationContext(),
                 getString(R.string.service_started), Toast.LENGTH_SHORT);
 
-        if (stop) {
+        if (!start) {
             toast.setText(getString(R.string.service_stopped));
         }
         toast.show();
-        isServiceRunning = !stop;
+        isServiceRunning = start;
         cdtService.cancel();//don't go to onFinish
         if (isServiceRunning) {
             btnStartStop.setText(R.string.stop_service);
