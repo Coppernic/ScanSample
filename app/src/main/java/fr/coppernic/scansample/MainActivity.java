@@ -43,8 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private Button btnStartStop = null;
     private CountDownTimer cdtService = null;
     private boolean isConeV1 = false;
-    //declared here in case of start/stop service button spam
-    private Toast serviceOnOff = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //ask permission for Android 7 and upper
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                //ask permission for Android 8 and upper
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     requestPermissions(new String[]{BARCODE_PERMISSION}, BARCODE_CODE_PERMISSION);
                 } else {
                     startScan();
@@ -68,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ask permission for Android 7 and upper
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                //ask permission for Android 8 and upper
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     requestPermissions(new String[]{BARCODE_PERMISSION},
                             BARCODE_SERVICE_CODE_PERMISSION);
                 } else {
@@ -77,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        //
         AndroidInteractor androidInteractor = new AndroidInteractor(getApplicationContext());
         packageName = androidInteractor.loadPackage();
         if (packageName.contains("service")) {
@@ -100,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-        serviceOnOff = Toast.makeText(getApplicationContext(),
-                getString(R.string.service_started), Toast.LENGTH_SHORT);
     }
 
     @Override
@@ -131,10 +126,10 @@ public class MainActivity extends AppCompatActivity {
                         scanError(intent);
                         break;
                     case INTENT_SERVICE_STARTED:
-                        serviceStarted(serviceOnOff);
+                        serviceStartStopped(false);
                         break;
                     case INTENT_SERVICE_STOPPED:
-                        serviceStopped(serviceOnOff);
+                        serviceStartStopped(true);
                         break;
                 }
             }
@@ -174,13 +169,13 @@ public class MainActivity extends AppCompatActivity {
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_STOP);
                 if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
-                    serviceStopped(serviceOnOff);
+                    serviceStartStopped(true);
                 }
             } else {
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_START);
                 if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
-                    serviceStarted(serviceOnOff);
+                    serviceStartStopped(false);
                 }
             }
             ComponentName info = startService(startStopIntent);
@@ -243,20 +238,23 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void serviceStarted(Toast toast) {
-        toast.show();
-        isServiceRunning = true;
-        cdtService.cancel();//don't go to onFinish
-        btnStartStop.setText(R.string.stop_service);
-        Log.d("ScanSample", "Barcode service started");
-    }
+    private void serviceStartStopped(boolean stop) {
+        //declared here in case of start/stop service button spam
+        Toast toast = Toast.makeText(getApplicationContext(),
+                getString(R.string.service_started), Toast.LENGTH_SHORT);
 
-    private void serviceStopped(Toast toast) {
-        toast.setText(getString(R.string.service_stopped));
+        if (stop) {
+            toast.setText(getString(R.string.service_stopped));
+        }
         toast.show();
-        isServiceRunning = false;
+        isServiceRunning = !stop;
         cdtService.cancel();//don't go to onFinish
-        btnStartStop.setText(R.string.start_service);
-        Log.d("ScanSample", "Barcode service stopped");
+        if (isServiceRunning) {
+            btnStartStop.setText(R.string.stop_service);
+            Log.d("ScanSample", "Barcode service started");
+        } else {
+            btnStartStop.setText(R.string.start_service);
+            Log.d("ScanSample", "Barcode service stopped");
+        }
     }
 }

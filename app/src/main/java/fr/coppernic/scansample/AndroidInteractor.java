@@ -18,26 +18,10 @@ class AndroidInteractor {
     String loadPackage() {
         final List<ApplicationInfo> appsInfo = context.getPackageManager().getInstalledApplications(0);
         for (final ApplicationInfo appInfo : appsInfo) {
-            if (appInfo.packageName.startsWith(BASE_NAME_BARCODE_MANAGER)) {
-                return appInfo.packageName;
-            }
-        }
-        for (final ApplicationInfo appInfo : appsInfo) {
-            if (appInfo.packageName.startsWith(BASE_NAME_SYSTEM_SERVICE)) {
+            if (appInfo.packageName.startsWith(BASE_NAME_BARCODE_MANAGER) || appInfo.packageName.startsWith(BASE_NAME_SYSTEM_SERVICE)) {
                 return appInfo.packageName;
             }
         }
         return "";
     }
-
-//    String isAppInstalled(final Context context, final String packageName) {
-//        final List<ApplicationInfo> appsInfo = context.getPackageManager().getInstalledApplications(0);
-//        for (final ApplicationInfo appInfo : appsInfo) {
-//            if (appInfo.packageName.startsWith(packageName)) {
-//                return appInfo.packageName;
-//            }
-//        }
-//        return "";
-//    }
 }
-
