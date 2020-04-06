@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -73,6 +74,12 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     startStopService();
                 }
+            }
+        });
+        btnStartStop.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                return true;//disable all key event on this button
             }
         });
         AndroidInteractor androidInteractor = new AndroidInteractor(getApplicationContext());
