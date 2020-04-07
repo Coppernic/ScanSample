@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        //to avoid Keyboard wedge behavior when Carriage Return is enable in BCManager settings
         btnStartStop.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
