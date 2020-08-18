@@ -4,19 +4,19 @@ Barcode scanning
 Context 
 -----------
 
-This application demonstrates how to scan a barcode on Coppernic device.
+This application demonstrates how to scan a barcode on a Coppernic device.
 
 Prerequisites
 -------------
 
-CpcSystemServices from version 2.0.4 needs to be installed on device.
+CpcSystemServices from version 2.0.4 needs to be installed on the device.
 
 Trig a barcode
 --------------
 
 There are 2 ways to trig a barcode reading:
-- Remap a physical button to barcode scan function
-- Send an intent
+- Remap a physical button to barcode scan function,
+- Send an intent.
 
 ### Remap a physical button to barcode reading
 
@@ -37,7 +37,7 @@ if (info != null) {
 }
 ```
 
-where
+where:
 
 ```java
 // With Barcode Manager App (C-One²)
@@ -67,7 +67,7 @@ private BroadcastReceiver scanResult = new BroadcastReceiver() {
 };
 ```
 
-Where
+Where:
 
 ```java
 public final static String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
@@ -109,20 +109,20 @@ Configure
 ---------
 
 Barcode reader can be configured via Barcode Manager application. This application
-is usually installed on devices. It is also available on [F-Droid](https://coppernic.github.io/coppernic/2018/02/13/F-Droid.html).
+is usually installed on devices. It is also available on [CopperApps](https://github.com/Coppernic/coppernic.github.io/releases).
 
 ### General
 
-* Scan sound : play a sound when scan is ended or not.
-* Scan display : Diosplay the scanindicator on screen or not
-* Continuous mode : Enable continuous mode or not (scan until button is released or scan until good read or timeout)
-* Scan timeout : scan timeout
-* Barcode service startup at boot: Enables/disables automatic barcode service start when device boot is finished.
-* Display barcode notification: Displays a barcode notification in status bar or not.
-* Keep barcode reader opened: Id checked, improves scan speed.
-* Keyboard wedge: Sends data to input buffer in addition to intent.
-* Keyboard fast wedge : Use fatser keyboard wedge, needs an additional keyboiard to be installed.
-* Search and replace: Use regular expression to search and replace in data read.
+* Scan sound: plays a sound when scan is ended or not (after a reading timeout),
+* Scan display: displays the scan indicator on screen or not,
+* Continuous mode: enables continuous mode or not (scan until button is released or scan until good read or timeout),
+* Scan timeout: scan timeout,
+* Barcode service startup at boot: enables/disables automatic barcode service start when device boot is finished,
+* Display barcode notification: displays a barcode notification in status bar or not,
+* Keep barcode reader opened: ID checked, improves scan speed,
+* Keyboard wedge: sends data to input buffer in addition to intent,
+* Keyboard fast wedge: uses faster keyboard wedge, needs an additional keyboard to be installed,
+* Search and replace: uses regular expression to search and replace in data read.
 
 ### Barcode reader
 
