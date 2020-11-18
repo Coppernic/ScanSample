@@ -9,10 +9,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -20,7 +16,17 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import fr.coppernic.lib.interactors.barcode.BarcodeInteractor;
+import fr.coppernic.lib.interactors.common.rx.TimeoutRetryPredicate;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -45,12 +51,16 @@ public class MainActivity extends AppCompatActivity {
     private CountDownTimer cdtService = null;
     private boolean isConeV1 = false;
 
+    BarcodeInteractor barcodeInteractor = null;
+    private Disposable disposable = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        barcodeInteractor = new BarcodeInteractor(this);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -128,15 +138,18 @@ public class MainActivity extends AppCompatActivity {
             if (intent.getAction() != null) {
                 switch (intent.getAction()) {
                     case ACTION_SCAN_SUCCESS:
-                        scanSuccess(intent);
+                        //scanSuccess(intent);
                         break;
                     case ACTION_SCAN_ERROR:
-                        scanError(intent);
+                       // scanError(intent);
                         break;
                     case INTENT_SERVICE_STARTED:
                         displayServiceStatus(true);
                         break;
                     case INTENT_SERVICE_STOPPED:
+                        if(disposable != null) {
+                            disposable.dispose();
+                        }
                         displayServiceStatus(false);
                         break;
                 }
@@ -149,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
      **/
     private void startScan() {
         if (!packageName.isEmpty()) {
-            Intent scanIntent = new Intent();
+           /* Intent scanIntent = new Intent();
             // We need to set package to send an explicit intent.
             scanIntent.setPackage(packageName);
             // We want a scan
@@ -161,10 +174,42 @@ public class MainActivity extends AppCompatActivity {
                 Timber.d("Scan Success with System Service");
             } else {
                 Timber.e("Barcode service not found");
-            }
+            }*/
+            barcodeInteractor.trig();
         } else {
             Toast.makeText(getApplicationContext(), (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void startListenWithInteractor() {
+        barcodeInteractor.listen()
+                .retry(new TimeoutRetryPredicate())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                        disposable = d;
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        TextView tvBarcode = findViewById(R.id.tvBarcode);
+                        tvBarcode.setText(s);
+                        // Get the string read by barcode reader
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        TextView tvBarcode = findViewById(R.id.tvBarcode);
+                        tvBarcode.setText(e.getMessage());
+                        // Receives errors, including timeouts
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Timber.e("listen stop!!");
+                        // Should never be called
+                    }
+                } );
     }
 
     private void startStopService() {
@@ -180,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
                     displayServiceStatus(false);
                 }
             } else {
+                startListenWithInteractor();
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_START);
                 if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
@@ -194,9 +240,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerReceiver() {
+        startListenWithInteractor();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_SCAN_SUCCESS);
-        filter.addAction(ACTION_SCAN_ERROR);
+        //filter.addAction(ACTION_SCAN_SUCCESS);
+        //filter.addAction(ACTION_SCAN_ERROR);
         filter.addAction(INTENT_SERVICE_STARTED);
         filter.addAction(INTENT_SERVICE_STOPPED);
         registerReceiver(serviceResult, filter);
