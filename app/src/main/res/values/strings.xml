@@ -11,5 +11,7 @@
     <string name="service_stopped">Barcode service stopped</string>
     <string name="service_waiting">Waiting... %1$d seconds</string>
     <string name="service_not_responding">Timeout...Service not responding</string>
+    <string name="intent">Intent</string>
+    <string name="BarcodeInteractor">Use Barcode Interactor</string>
 
 </resources>

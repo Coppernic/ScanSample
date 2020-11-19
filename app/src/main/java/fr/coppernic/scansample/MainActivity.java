@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import fr.coppernic.lib.interactors.barcode.BarcodeInteractor;
@@ -31,10 +33,14 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String ACTION_SERVICE_START = "fr.coppernic.intent.action.start.barcode.service";
-    public static final String ACTION_SERVICE_STOP = "fr.coppernic.intent.action.stop.barcode.service";
-    public static final String INTENT_SERVICE_STARTED = "fr.coppernic.intent.barcode.service.STARTED";
-    public static final String INTENT_SERVICE_STOPPED = "fr.coppernic.intent.barcode.service.STOPPED";
+    public static final String ACTION_SERVICE_START = "fr.coppernic.intent.action.start.barcode" +
+            ".service";
+    public static final String ACTION_SERVICE_STOP = "fr.coppernic.intent.action.stop.barcode" +
+            ".service";
+    public static final String INTENT_SERVICE_STARTED = "fr.coppernic.intent.barcode.service" +
+            ".STARTED";
+    public static final String INTENT_SERVICE_STOPPED = "fr.coppernic.intent.barcode.service" +
+            ".STOPPED";
     public static final String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public static final String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
@@ -48,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isServiceRunning = true;
     private String packageName = "";
     private Button btnStartStop = null;
+    private Chip chipInteractor = null;
     private CountDownTimer cdtService = null;
     private boolean isConeV1 = false;
 
@@ -93,6 +100,19 @@ public class MainActivity extends AppCompatActivity {
                 return true;//disable all key event on this button
             }
         });
+
+        chipInteractor = findViewById(R.id.chipInteractor);
+        chipInteractor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    startListenWithInteractor();
+                } else {
+                    stopListeningInteractor();
+                }
+            }
+        });
+
         AndroidInteractor androidInteractor = new AndroidInteractor(getApplicationContext());
         packageName = androidInteractor.loadPackage();
         if (packageName.contains("service")) {
@@ -101,7 +121,8 @@ public class MainActivity extends AppCompatActivity {
         cdtService = new CountDownTimer(BARCODE_SERVICE_TIMEOUT, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                btnStartStop.setText(getString(R.string.service_waiting, millisUntilFinished / 1000));
+                btnStartStop.setText(getString(R.string.service_waiting,
+                        millisUntilFinished / 1000));
             }
 
             @Override
@@ -138,18 +159,19 @@ public class MainActivity extends AppCompatActivity {
             if (intent.getAction() != null) {
                 switch (intent.getAction()) {
                     case ACTION_SCAN_SUCCESS:
-                        //scanSuccess(intent);
+                        scanSuccess(intent);
                         break;
                     case ACTION_SCAN_ERROR:
-                       // scanError(intent);
+                        scanError(intent);
                         break;
                     case INTENT_SERVICE_STARTED:
                         displayServiceStatus(true);
+                        if(chipInteractor.isChecked()) {
+                            startListenWithInteractor();
+                        }
                         break;
                     case INTENT_SERVICE_STOPPED:
-                        if(disposable != null) {
-                            disposable.dispose();
-                        }
+                        stopListeningInteractor();
                         displayServiceStatus(false);
                         break;
                 }
@@ -162,22 +184,26 @@ public class MainActivity extends AppCompatActivity {
      **/
     private void startScan() {
         if (!packageName.isEmpty()) {
-           /* Intent scanIntent = new Intent();
-            // We need to set package to send an explicit intent.
-            scanIntent.setPackage(packageName);
-            // We want a scan
-            scanIntent.setAction(INTENT_ACTION_SCAN);
-            //We are telling who we are to barcode service.
-            scanIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
-            ComponentName info = startService(scanIntent);
-            if (info != null) {
-                Timber.d("Scan Success with System Service");
+            if (chipInteractor.isChecked()) {
+                barcodeInteractor.trig();
             } else {
-                Timber.e("Barcode service not found");
-            }*/
-            barcodeInteractor.trig();
+                Intent scanIntent = new Intent();
+                // We need to set package to send an explicit intent.
+                scanIntent.setPackage(packageName);
+                // We want a scan
+                scanIntent.setAction(INTENT_ACTION_SCAN);
+                //We are telling who we are to barcode service.
+                scanIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
+                ComponentName info = startService(scanIntent);
+                if (info != null) {
+                    Timber.d("Scan Success with System Service");
+                } else {
+                    Timber.e("Barcode service not found");
+                }
+            }
         } else {
-            Toast.makeText(getApplicationContext(), (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), (R.string.service_install_error_message),
+                    Toast.LENGTH_LONG).show();
         }
     }
 
@@ -192,16 +218,16 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(String s) {
-                        TextView tvBarcode = findViewById(R.id.tvBarcode);
-                        tvBarcode.setText(s);
                         // Get the string read by barcode reader
+                        TextView tvBarcode = findViewById(R.id.tvBarcode);
+                        tvBarcode.setText("Interactor result : " + s);
                     }
 
                     @Override
                     public void onError(Throwable e) {
+                        // Receives errors, including timeouts
                         TextView tvBarcode = findViewById(R.id.tvBarcode);
                         tvBarcode.setText(e.getMessage());
-                        // Receives errors, including timeouts
                     }
 
                     @Override
@@ -209,7 +235,13 @@ public class MainActivity extends AppCompatActivity {
                         Timber.e("listen stop!!");
                         // Should never be called
                     }
-                } );
+                });
+    }
+
+    private void stopListeningInteractor(){
+        if(disposable != null) {
+            disposable.dispose();
+        }
     }
 
     private void startStopService() {
@@ -225,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
                     displayServiceStatus(false);
                 }
             } else {
-                startListenWithInteractor();
                 cdtService.start();
                 startStopIntent.setAction(ACTION_SERVICE_START);
                 if (isConeV1) {//to simulate ConeV2 display, no broadcast from v1 service
@@ -240,10 +271,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerReceiver() {
-        startListenWithInteractor();
         IntentFilter filter = new IntentFilter();
-        //filter.addAction(ACTION_SCAN_SUCCESS);
-        //filter.addAction(ACTION_SCAN_ERROR);
+        if (chipInteractor.isChecked()) {
+            startListenWithInteractor();
+        } else {
+            filter.addAction(ACTION_SCAN_SUCCESS);
+            filter.addAction(ACTION_SCAN_ERROR);
+        }
         filter.addAction(INTENT_SERVICE_STARTED);
         filter.addAction(INTENT_SERVICE_STOPPED);
         registerReceiver(serviceResult, filter);
@@ -288,7 +322,8 @@ public class MainActivity extends AppCompatActivity {
         if (resultAsEnum == RESULT.CANCELLED) {
             resultAsEnum = RESULT.TIMEOUT;
         }
-        Toast.makeText(getApplicationContext(), getString(R.string.scan_error, resultAsEnum.toString()),
+        Toast.makeText(getApplicationContext(), getString(R.string.scan_error,
+                resultAsEnum.toString()),
                 Toast.LENGTH_SHORT)
                 .show();
     }
