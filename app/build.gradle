@@ -10,13 +10,14 @@ copper {
 
     publications {
         artiConfig = project.hasProperty('artiServer') ? project.artiServer : "arti01"
+        mavenConfig = project.hasProperty('mavenServer')?project.artiServer:"nexusPrivate"
     }
 }
 
 apply plugin: 'fr.coppernic.android'
 
 repositories {
-    maven { url 'http://arti-01.coppernic.local:8081/artifactory/libs-release' }
+    maven { url "https://nexus.coppernic.fr/repository/maven-public" }
     google()
     jcenter()
     mavenCentral()
@@ -24,16 +25,16 @@ repositories {
 
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "fr.coppernic.scansample"
         minSdkVersion 17
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode versioning.info.versionCode
         versionName versioning.info.display
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
         vectorDrawables.useSupportLibrary = true
     }
@@ -48,25 +49,30 @@ android {
     packagingOptions {
         exclude 'META-INF/lib_release.kotlin_module'
     }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
-String support = "27.1.1"
+String support = "28.0.0"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    implementation "com.android.support:appcompat-v7:$support"
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation "com.android.support:design:$support"
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation 'com.google.android.material:material:1.4.0'
 
-    implementation 'fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.18.4'
+    implementation 'fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.19.1'
 
     implementation 'com.jakewharton.timber:timber:4.7.1'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
 }
 
 configurations.all {
