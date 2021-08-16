@@ -9,17 +9,17 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
 import timber.log.Timber;
 
@@ -259,10 +259,10 @@ public class MainActivity extends AppCompatActivity {
         cdtService.cancel();//don't go to onFinish
         if (isServiceRunning) {
             btnStartStop.setText(R.string.stop_service);
-            Log.d("ScanSample", "Barcode service started");
+            Timber.d("Barcode service started");
         } else {
             btnStartStop.setText(R.string.start_service);
-            Log.d("ScanSample", "Barcode service stopped");
+            Timber.d("Barcode service stopped");
         }
     }
 }
