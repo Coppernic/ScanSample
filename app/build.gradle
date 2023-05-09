@@ -72,6 +72,10 @@ dependencies {
     implementation 'fr.coppernic.sdk.cpcutils:CpcUtilsLib:6.19.1'
 
     implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    implementation 'fr.coppernic.sdk.core:CpcCore:addPistolGripTriggerKeyCode'
+
+
     testImplementation 'junit:junit:4.13.1'
 }
 

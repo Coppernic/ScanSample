@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import fr.coppernic.sdk.utils.core.CpcResult.RESULT;
+import fr.coppernic.sdk.utils.helpers.OsHelper;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
     public static final String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public static final String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
+
+    public static final String INTENT_ACTION_STOP_SCAN = "fr.coppernic.intent.action.scan.STOP";
+
     public static final String BARCODE_DATA = "BarcodeData";
     public static final String KEY_RESULT = "res";
     public static final String KEY_PACKAGE = "package";
@@ -143,6 +147,32 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+
+    /**
+     * Stop the barcode scan
+     **/
+    private void stopScan() {
+        if (!packageName.isEmpty()) {
+            Intent scanIntent = new Intent();
+            // We need to set package to send an explicit intent.
+            scanIntent.setPackage(packageName);
+            // We want a scan
+            scanIntent.setAction(INTENT_ACTION_STOP_SCAN);
+            //We are telling who we are to barcode service.
+            scanIntent.putExtra(KEY_PACKAGE, BuildConfig.APPLICATION_ID);
+            ComponentName info = startService(scanIntent);
+            if (info != null) {
+                Timber.d("Stop scan");
+            } else {
+                Timber.e("Barcode service not found");
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), (R.string.service_install_error_message), Toast.LENGTH_LONG).show();
+        }
+    }
+
+
 
     /**
      * Triggers a barcode scan
@@ -265,4 +295,31 @@ public class MainActivity extends AppCompatActivity {
             Timber.d("Barcode service stopped");
         }
     }
+
+    boolean scanIsStopped = true;
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
+        // Change
+        Timber.d("onKeyDown()" + keyCode);
+        if (keyCode == OsHelper.getTriggerKey()) {
+            if (scanIsStopped) {
+                startScan();
+            }
+            scanIsStopped = false;
+            return false;
+        }
+        return super.onKeyDown(keyCode, keyEvent);
+    }
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent keyEvent) {
+        Timber.d("onKeyUp()" + keyCode);
+        // Change
+        if (keyCode == OsHelper.getTriggerKey()) {
+            stopScan();
+            scanIsStopped = true;
+            return false;
+        }
+        return super.onKeyDown(keyCode, keyEvent);
+    }
+
 }
