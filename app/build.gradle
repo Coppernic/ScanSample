@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId "fr.coppernic.scansample"
-        minSdkVersion 17
+        minSdkVersion 27
         targetSdkVersion 28
         versionCode versioning.info.versionCode
         versionName versioning.info.display
