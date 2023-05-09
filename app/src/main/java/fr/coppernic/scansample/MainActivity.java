@@ -33,9 +33,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String ACTION_SCAN_SUCCESS = "fr.coppernic.intent.scansuccess";
     public static final String ACTION_SCAN_ERROR = "fr.coppernic.intent.scanfailed";
     public static final String INTENT_ACTION_SCAN = "fr.coppernic.intent.action.SCAN";
-
     public static final String INTENT_ACTION_STOP_SCAN = "fr.coppernic.intent.action.scan.STOP";
-
     public static final String BARCODE_DATA = "BarcodeData";
     public static final String KEY_RESULT = "res";
     public static final String KEY_PACKAGE = "package";
@@ -299,9 +297,8 @@ public class MainActivity extends AppCompatActivity {
     boolean scanIsStopped = true;
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
-        // Change
-        Timber.d("onKeyDown()" + keyCode);
         if (keyCode == OsHelper.getTriggerKey()) {
+            // Used with Pistol trigger
             if (scanIsStopped) {
                 startScan();
             }
@@ -312,9 +309,8 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent keyEvent) {
-        Timber.d("onKeyUp()" + keyCode);
-        // Change
         if (keyCode == OsHelper.getTriggerKey()) {
+            // Used with Pistol trigger
             stopScan();
             scanIsStopped = true;
             return false;
